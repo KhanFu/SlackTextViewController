@@ -28,6 +28,11 @@
 @property (nonatomic, strong) NSLayoutConstraint *leftButtonWC;
 @property (nonatomic, strong) NSLayoutConstraint *leftButtonHC;
 @property (nonatomic, strong) NSLayoutConstraint *leftMarginWC;
+
+@property (nonatomic, strong) NSLayoutConstraint *leftMiddleButtonWC;
+@property (nonatomic, strong) NSLayoutConstraint *leftMiddleButtonHC;
+@property (nonatomic, strong) NSLayoutConstraint *leftMiddleMarginWC;
+
 @property (nonatomic, strong) NSLayoutConstraint *bottomMarginWC;
 @property (nonatomic, strong) NSLayoutConstraint *rightButtonWC;
 @property (nonatomic, strong) NSLayoutConstraint *rightMarginWC;
@@ -62,13 +67,14 @@
     self.autoHideRightButton = YES;
     self.accessoryViewHeight = 38.0;
     self.contentInset = UIEdgeInsetsMake(5.0, 8.0, 5.0, 8.0);
-
+    
     [self addSubview:self.accessoryView];
     [self addSubview:self.leftButton];
+    [self addSubview:self.leftMiddleButton];
     [self addSubview:self.rightButton];
     [self addSubview:self.textView];
     [self addSubview:self.charCountLabel];
-
+    
     [self setupViewConstraints];
     [self updateConstraintConstants];
     
@@ -144,6 +150,18 @@
     }
     return _leftButton;
 }
+
+- (UIButton *)leftMiddleButton
+{
+    if (!_leftMiddleButton)
+    {
+        _leftMiddleButton = [UIButton buttonWithType:UIButtonTypeSystem];
+        _leftMiddleButton.translatesAutoresizingMaskIntoConstraints = NO;
+        _leftMiddleButton.titleLabel.font = [UIFont systemFontOfSize:15.0];
+    }
+    return _leftMiddleButton;
+}
+
 
 - (UIButton *)rightButton
 {
@@ -349,7 +367,7 @@
     if (self.isEditing && [self.textView.text isEqualToString:text]) {
         return NO;
     }
-
+    
     return YES;
 }
 
@@ -456,9 +474,9 @@
             return;
         }
         
-		[self slk_animateLayoutIfNeededWithBounce:bounces
-										  options:UIViewAnimationOptionCurveEaseInOut|UIViewAnimationOptionBeginFromCurrentState
-									   animations:NULL];
+        [self slk_animateLayoutIfNeededWithBounce:bounces
+                                          options:UIViewAnimationOptionCurveEaseInOut|UIViewAnimationOptionBeginFromCurrentState
+                                       animations:NULL];
     }
 }
 
@@ -476,14 +494,17 @@
 - (void)setupViewConstraints
 {
     UIImage *leftButtonImg = [self.leftButton imageForState:UIControlStateNormal];
+    UIImage *leftMiddleButtonImg = [self.leftMiddleButton imageForState:UIControlStateNormal];
     
     [self.rightButton sizeToFit];
     
     CGFloat leftVerMargin = (self.intrinsicContentSize.height - leftButtonImg.size.height) / 2.0;
+    CGFloat leftMiddleVerMargin = (self.intrinsicContentSize.height - leftMiddleButtonImg.size.height) / 2.0;
     CGFloat rightVerMargin = (self.intrinsicContentSize.height - CGRectGetHeight(self.rightButton.frame)) / 2.0;
-
+    
     NSDictionary *views = @{@"textView": self.textView,
                             @"leftButton": self.leftButton,
+                            @"leftMiddleButton": self.leftMiddleButton,
                             @"rightButton": self.rightButton,
                             @"accessoryView": self.accessoryView,
                             @"charCountLabel": self.charCountLabel
@@ -494,16 +515,29 @@
                               @"left" : @(self.contentInset.left),
                               @"right" : @(self.contentInset.right),
                               @"leftVerMargin" : @(leftVerMargin),
+                              @"leftMiddleVerMargin" : @(leftMiddleVerMargin),
                               @"rightVerMargin" : @(rightVerMargin),
                               @"minTextViewHeight" : @(self.textView.intrinsicContentSize.height),
                               };
-
-    [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|-(left)-[leftButton(0)]-(<=left)-[textView]-(right)-[rightButton(0)]-(right)-|" options:0 metrics:metrics views:views]];
-    [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|-(>=0)-[leftButton(0)]-(0@750)-|" options:0 metrics:metrics views:views]];
+    
+    [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|-(left)-[leftButton(0)]-[leftMiddleButton(0)]-(<=left)-[textView]-(right)-[rightButton(0)]-(right)-|" options:0 metrics:metrics views:views]];
+    
+    [self addConstraint: [NSLayoutConstraint constraintWithItem:self.leftButton attribute:NSLayoutAttributeBottom
+                                                      relatedBy:NSLayoutRelationEqual
+                                                         toItem:self
+                                                      attribute:NSLayoutAttributeBottom
+                                                     multiplier:1.0f constant:-12.0f] ];
+    
+    [self addConstraint: [NSLayoutConstraint constraintWithItem:self.leftMiddleButton attribute:NSLayoutAttributeBottom
+                                                      relatedBy:NSLayoutRelationEqual
+                                                         toItem:self
+                                                      attribute:NSLayoutAttributeBottom
+                                                     multiplier:1.0f constant:-12.0f] ];
+    
     [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|-(>=rightVerMargin)-[rightButton]-(<=rightVerMargin)-|" options:0 metrics:metrics views:views]];
     [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|-(<=top)-[charCountLabel]-(>=0)-|" options:0 metrics:metrics views:views]];
     [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|-(left@250)-[charCountLabel(<=50@1000)]-(right@750)-|" options:0 metrics:metrics views:views]];
-
+    
     [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|-0-[accessoryView(0)]-(<=top)-[textView(minTextViewHeight@250)]-(bottom)-|" options:0 metrics:metrics views:views]];
     [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[accessoryView]|" options:0 metrics:metrics views:views]];
     
@@ -513,8 +547,12 @@
     self.leftButtonHC = [self slk_constraintForAttribute:NSLayoutAttributeHeight firstItem:self.leftButton secondItem:nil];
     
     self.leftMarginWC = [self slk_constraintsForAttribute:NSLayoutAttributeLeading][0];
+    
+    self.leftMiddleButtonWC = [self slk_constraintForAttribute:NSLayoutAttributeWidth firstItem:self.leftMiddleButton secondItem:nil];
+    self.leftMiddleButtonHC = [self slk_constraintForAttribute:NSLayoutAttributeHeight firstItem:self.leftMiddleButton secondItem:nil];
+    
     self.bottomMarginWC = [self slk_constraintForAttribute:NSLayoutAttributeBottom firstItem:self secondItem:self.leftButton];
-
+    
     self.rightButtonWC = [self slk_constraintForAttribute:NSLayoutAttributeWidth firstItem:self.rightButton secondItem:nil];
     self.rightMarginWC = [self slk_constraintsForAttribute:NSLayoutAttributeTrailing][0];
 }
@@ -522,12 +560,17 @@
 - (void)updateConstraintConstants
 {
     CGFloat zero = 0.0;
-
+    
     if (self.isEditing)
     {
         self.accessoryViewHC.constant = self.accessoryViewHeight;
         self.leftButtonWC.constant = zero;
         self.leftButtonHC.constant = zero;
+        
+        self.leftMiddleButtonWC.constant = zero;
+        self.leftMiddleButtonHC.constant = zero;
+        
+        
         self.leftMarginWC.constant = zero;
         self.bottomMarginWC.constant = zero;
         self.rightButtonWC.constant = zero;
@@ -536,15 +579,20 @@
     else
     {
         self.accessoryViewHC.constant = zero;
-
+        
         CGSize leftButtonSize = [self.leftButton imageForState:self.leftButton.state].size;
+        CGSize leftMiddleButtonSize = [self.leftMiddleButton imageForState:self.leftMiddleButton.state].size;
         
         if (leftButtonSize.width > 0) {
             self.leftButtonHC.constant = roundf(leftButtonSize.height);
+            self.leftMiddleButtonHC.constant = roundf(leftMiddleButtonSize.height);
+            
             self.bottomMarginWC.constant = roundf((self.intrinsicContentSize.height - leftButtonSize.height) / 2.0);
         }
         
         self.leftButtonWC.constant = roundf(leftButtonSize.width);
+        self.leftMiddleButtonWC.constant = roundf(leftMiddleButtonSize.width);
+        
         self.leftMarginWC.constant = (leftButtonSize.width > 0) ? self.contentInset.left : zero;
         
         self.rightButtonWC.constant = [self appropriateRightButtonWidth];
@@ -582,6 +630,7 @@
     [_leftButton.imageView removeObserver:self forKeyPath:NSStringFromSelector(@selector(image))];
     
     _leftButton = nil;
+    _leftMiddleButton = nil;
     _rightButton = nil;
     
     _textView.delegate = nil;

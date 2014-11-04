@@ -42,6 +42,9 @@ typedef NS_ENUM(NSUInteger, SLKCounterStyle) {
 /** The left action button action. */
 @property (nonatomic, strong) UIButton *leftButton;
 
+/** The left middle action button action. */
+@property (nonatomic, strong) UIButton *leftMiddleButton;
+
 /** The right action button action. */
 @property (nonatomic, strong) UIButton *rightButton;
 
@@ -83,7 +86,7 @@ typedef NS_ENUM(NSUInteger, SLKCounterStyle) {
 /** A Boolean value indicating whether the control is in edit mode. */
 @property (nonatomic, getter = isEditing) BOOL editing;
 
-/** 
+/**
  Verifies if the text can be edited.
  
  @param text The text to be edited.
