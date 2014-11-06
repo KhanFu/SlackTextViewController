@@ -195,6 +195,14 @@ NS_CLASS_AVAILABLE_IOS(7_0) @interface SLKTextViewController : UIViewController 
 - (void)didPressLeftButton:(id)sender;
 
 /**
+ Notifies the view controller when the left middle button's action has been triggered, manually.
+ You can override this method to perform additional tasks associated with the left middle button. You don't need call super since this method doesn't do anything.
+ 
+ @param sender The object calling this method.
+ */
+- (void)didPressLeftMiddleButton:(id)sender;
+
+/**
  Notifies the view controller when the right button's action has been triggered, manually or by using the keyboard return key.
  You can override this method to perform additional tasks associated with the right button. You MUST call super at some point in your implementation.
  
